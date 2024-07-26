@@ -586,6 +586,8 @@ void BleGamepad::end(void)
         NimBLEDevice::getServer()->disconnect(this->connectionStatus->getConnId());
     }
 
+    vTaskDelete(this->taskServer);
+
     if (hid != nullptr) {
         delete hid;
         hid = nullptr;
