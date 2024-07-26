@@ -102,6 +102,8 @@ public:
     bool isConnected(void);
     void resetButtons();
     void setBatteryLevel(uint8_t level);
+    void startAdvertising();
+    void stopAdvertising();
     uint8_t batteryLevel;
     std::string deviceManufacturer;
     std::string deviceName;
