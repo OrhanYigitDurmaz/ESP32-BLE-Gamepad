@@ -29,7 +29,7 @@ static const char *LOG_TAG = "BLEGamepad";
 #define CHARACTERISTIC_UUID_FIRMWARE_REVISION  "2A26"      // Characteristic - Firmware Revision String - 0x2A26
 #define CHARACTERISTIC_UUID_HARDWARE_REVISION  "2A27"      // Characteristic - Hardware Revision String - 0x2A27
 
-
+bool isAdvertising = false;
 uint8_t tempHidReportDescriptor[150];
 int hidReportDescriptorSize = 0;
 uint8_t reportSize = 0;
@@ -577,6 +577,34 @@ void BleGamepad::begin(BleGamepadConfiguration *config)
 
 void BleGamepad::end(void)
 {
+    if (isAdvertising) {
+        pAdvertising->stop();
+        isAdvertising = false;
+    }
+
+    if (this->isConnected()) {
+        NimBLEDevice::getServer()->disconnect(this->connectionStatus->getConnId());
+    }
+
+    if (hid != nullptr) {
+        delete hid;
+        hid = nullptr;
+    }
+
+     if (connectionStatus != nullptr) {
+        delete connectionStatus;
+        connectionStatus = nullptr;
+    }
+
+    NimBLEDevice::deinit(true);
+
+    _buttons = {};
+    _specialButtons = 0;
+    _x = _y = _z = _rZ = _rX = _rY = _slider1 = _slider2 = 0;
+    _rudder = _throttle = _accelerator = _brake = _steering = 0;
+    _hat1 = _hat2 = _hat3 = _hat4 = 0;
+
+    ESP_LOGD(LOG_TAG, "BleGamepad ended and resources cleaned up");
 }
 
 void BleGamepad::setAxes(int16_t x, int16_t y, int16_t z, int16_t rZ, int16_t rX, int16_t rY, int16_t slider1, int16_t slider2)
@@ -1431,9 +1459,29 @@ void BleGamepad::taskServer(void *pvParameter)
     NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
     pAdvertising->setAppearance(HID_GAMEPAD);
     pAdvertising->addServiceUUID(BleGamepadInstance->hid->hidService()->getUUID());
+    
+    vTaskDelay(portMAX_DELAY); // delay(portMAX_DELAY);
+}
+
+void BleGamepad::startAdvertising() 
+{
+    if (isAdvertising) {
+        ESP_LOGE(LOG_TAG, "Already advertising!");
+    }
     pAdvertising->start();
+    isAdvertising = true;
     BleGamepadInstance->hid->setBatteryLevel(BleGamepadInstance->batteryLevel);
 
     ESP_LOGD(LOG_TAG, "Advertising started!");
-    vTaskDelay(portMAX_DELAY); // delay(portMAX_DELAY);
+}
+
+void BleGamepad::stopAdvertising()
+{
+    if (!isAdvertising) {
+        ESP_LOGE(LOG_TAG, "Advertising already stopped!");
+    }
+    pAdvertising->stop();
+    isAdvertising = false;
+    //disconnect
+    ESP_LOGD(LOG_TAG, "Advertising stopped and disconnected!");
 }
