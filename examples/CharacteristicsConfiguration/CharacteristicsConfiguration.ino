@@ -37,6 +37,7 @@ void setup()
     bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal     
     
     bleGamepad.begin(&bleGamepadConfig); // Begin gamepad with configuration options
+    bleGamepad.startAdvertising();
     esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address
 }
 
