@@ -583,7 +583,7 @@ void BleGamepad::end(void)
     }
 
     if (this->isConnected()) {
-        NimBLEDevice::getServer()->disconnect(this->connectionStatus->getConnId());
+        pServer->disconnect(this->connectionStatus->getConnId());
     }
 
     vTaskDelete(this->taskServer);
@@ -593,9 +593,14 @@ void BleGamepad::end(void)
         hid = nullptr;
     }
 
-     if (connectionStatus != nullptr) {
+    if (connectionStatus != nullptr) {
         delete connectionStatus;
         connectionStatus = nullptr;
+    }
+
+    if(inputGamepad != nullptr) {
+        delete inputGamepad;
+        inputGamepad = nullptr;
     }
 
     NimBLEDevice::deinit(true);
@@ -1389,7 +1394,8 @@ void BleGamepad::setBatteryLevel(uint8_t level)
 
 void BleGamepad::taskServer(void *pvParameter)
 {
-    BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
+    //BleGamepad *BleGamepadInstance = (BleGamepad *)pvParameter; // static_cast<BleGamepad *>(pvParameter);
+    BleGamepadInstance = (BleGamepad *)pvParameter;
 
     // Use the procedure below to set a custom Bluetooth MAC address
     // Compiler adds 0x02 to the last value of board's base MAC address to get the BT MAC address, so take 0x02 away from the value you actually want when setting
@@ -1397,7 +1403,7 @@ void BleGamepad::taskServer(void *pvParameter)
     //esp_base_mac_addr_set(&newMACAddress[0]); // Set new MAC address 
     
     NimBLEDevice::init(BleGamepadInstance->deviceName);
-    NimBLEServer *pServer = NimBLEDevice::createServer();
+    pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(BleGamepadInstance->connectionStatus);
 
     BleGamepadInstance->hid = new NimBLEHIDDevice(pServer);
@@ -1458,7 +1464,7 @@ void BleGamepad::taskServer(void *pvParameter)
 
     BleGamepadInstance->onStarted(pServer);
 
-    NimBLEAdvertising *pAdvertising = pServer->getAdvertising();
+    pAdvertising = pServer->getAdvertising();
     pAdvertising->setAppearance(HID_GAMEPAD);
     pAdvertising->addServiceUUID(BleGamepadInstance->hid->hidService()->getUUID());
     
@@ -1485,5 +1491,9 @@ void BleGamepad::stopAdvertising()
     pAdvertising->stop();
     isAdvertising = false;
     //disconnect
+    if (this->isConnected()) {
+        pServer->disconnect(this->connectionStatus->getConnId());
+    }
+
     ESP_LOGD(LOG_TAG, "Advertising stopped and disconnected!");
 }
