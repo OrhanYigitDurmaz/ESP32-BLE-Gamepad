@@ -38,6 +38,12 @@ private:
 
     BleConnectionStatus *connectionStatus;
 
+    BleGamepad *BleGamepadInstance = nullptr;
+
+    NimBLEAdvertising *pAdvertising = nullptr;
+
+    NimBLEServer *pServer = nullptr;
+
     NimBLEHIDDevice *hid;
     NimBLECharacteristic *inputGamepad;
 
