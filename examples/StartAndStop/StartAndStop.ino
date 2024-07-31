@@ -28,7 +28,7 @@ void setup()
     
     // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
     //bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-	bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal    
+	  bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal    
     bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal  
 
     bleGamepad = new BleGamepad("Custom Controller Name", "lemmingDev", 100);
@@ -40,7 +40,7 @@ void setup()
     }   
     
     bleGamepad->begin(&bleGamepadConfig); // Begin gamepad with configuration options
-    bleGamepad.startAdvertising();
+    bleGamepad->startAdvertising();
 }
 
 void loop()
@@ -50,6 +50,9 @@ void loop()
         // your code when connected
     }
 
+
+
+    delay(7000); //7 seconds
     //if you want to stop advertising:
     bleGamepad->stopAdvertising();
 
@@ -59,6 +62,8 @@ void loop()
     //and now delete it:
     delete bleGamepad;
     bleGamepad = nullptr;
+
+    delay(7000); //7 seconds
 
     //if you want to start it again now you need to declare it again
     bleGamepad = new BleGamepad("Custom Controller 2", "lemmingDev", 50);
